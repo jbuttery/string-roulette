@@ -1,7 +1,7 @@
 // Edit this file to taste, then move it into the same directory as the main
 // file, with the name "lists.js" (case sensitive).
 
-var strings = {
+var lists = {
 
     // You're going to want to leave the "numbers" list in here, unless you
     // edit the main file to have a different default list (the lists in here
