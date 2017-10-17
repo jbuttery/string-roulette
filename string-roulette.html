@@ -20,19 +20,23 @@ span#secondary_string                                { font-style: italic; }
 <title>String Roulette</title>
 <script type="text/javascript">
 var document_title = "String Roulette";
-var strings = {"numbers":["0","1","2","3","4","5","6","7","8","9"]};
-function update_string() {
-    // Get list name from URI query string
-    // .../string-roulette.html?list=numbers
-    var list_name = new URLSearchParams(window.location.search).get("list");
-    // Get list name from URI fragment
-    // .../string-roulette.html#numbers
-    //var list_name = window.location.hash.slice(1);
-    if ( strings[list_name] ) {
-        var list = strings[list_name];
+var lists = {"numbers":["0","1","2","3","4","5","6","7","8","9"]};
+var list_name = "";
+var list = "";
+function update_string(list_name) {
+    if ( ! list_name ) {
+        // Get list name from URI query string
+        // .../string-roulette.html?list=numbers
+        var list_name = new URLSearchParams(window.location.search).get("list");
+        // Get list name from URI fragment
+        // .../string-roulette.html#numbers
+        //var list_name = window.location.hash.slice(1);
+    }
+    if ( lists[list_name] ) {
+        list = lists[list_name];
     } else {
         list_name = "numbers";
-        var list = strings["numbers"];
+        list = lists["numbers"];
     }
     var list_selection = Math.floor(Math.random() * list.length);
     if ( typeof list[list_selection] === "string" ) {
@@ -46,25 +50,55 @@ function update_string() {
         exit;
     }
     document.getElementsByTagName("title")[0].innerText = document_title + " (" + list_name + ")";
-    document.getElementById("page_heading").innerText = document_title + " (" + list_name + ")";
+    document.getElementById("page_heading").innerText = document_title;
     document.getElementById("the_string").innerText = new_string;
     if ( typeof new_secondary_string === 'undefined' ) {
         document.getElementById("secondary_string").innerText = "";
     } else {
         document.getElementById("secondary_string").innerText = new_secondary_string;
     }
+    // Rewrite div#body onMouseUp handler
+    var body_element = document.getElementById("body")
+    body_element.removeAttribute("onmouseup");
+    body_element.setAttribute("onmouseup", "update_string('" + list_name + "')");
+    // Update location bar
+    window.history.pushState("{ list_name: " + list_name + "}", document.title, window.location.protocol + "/" + window.location.host + "/" + window.location.pathname + "?list=" + list_name);
+    // Update active list picker button
+    var list_picker_items = document.getElementsByClassName("list_picker_item");
+    for ( var i=0; i < list_picker_items.length; i++ ) {
+        if ( list_picker_items[i].innerText == list_name ) {
+            if ( ! list_picker_items[i].classList.contains("active") ) { list_picker_items[i].classList.add("active"); }
+        } else {
+            if ( list_picker_items[i].classList.contains("active") ) { list_picker_items[i].classList.remove("active"); }
+        }
+    }
+}
+function update_list_picker() {
+    var picker_contents = "";
+    for (var local_list_name in lists) {
+        picker_contents = picker_contents + '<button class="list_picker_item" onMouseUp="update_string(\'' + local_list_name + '\')">' + local_list_name + '</button>';
+    }
+    picker_contents = picker_contents.slice(0,-3);
+    document.getElementById("list_picker").innerHTML = picker_contents;
+}
+function do_onload() {
+    console.log("Loading scripts");
+    update_list_picker();
+    update_string();
 }
 // Run on page load
-window.onload = update_string;
+window.onload = do_onload;
 </script>
 <script src="lists.js"></script>
 </head>
-<body onMouseUp="update_string();">
-<div id="bgtext"></div>
+<body>
 <div id="header">
   <h1 id="page_heading"></h1>
+  <div id="list_picker_container">
+    <span id="list_picker"></span>
+  </div>
 </div>
-<div id="body">
+<div id="body" onMouseUp="update_string();">
   <div id="string_container">
     <span id="the_string"></span>
   </div>
